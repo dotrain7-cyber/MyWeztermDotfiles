@@ -1,0 +1,21 @@
+{{ if eq .chezmoi.os "windows" -}}
+# --- Windows (PowerShell / Winget) ---
+$packages = @(
+    "Wez.WezTerm",
+    "Starship.Starship",
+    "Fastfetch-cli.Fastfetch"
+)
+foreach ($pkg in $packages) {
+    winget install --id $pkg -e --accept-source-agreements --accept-package-agreements
+}
+
+{{ else if eq .chezmoi.os "darwin" -}}
+# --- macOS (Homebrew) ---
+brew install wezterm starship fastfetch
+
+{{ else if eq .chezmoi.os "linux" -}}
+# --- Linux (Apt) ---
+sudo apt update
+sudo apt install -y fastfetch
+curl -sS https://starship.rs/install.sh | sh -s -- -y
+{{ end -}}
