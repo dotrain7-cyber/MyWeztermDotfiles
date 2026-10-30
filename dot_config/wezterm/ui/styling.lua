@@ -44,7 +44,7 @@ M.colors = {
   status_bar_bg = "#16161e",
   status_bar_fg = "#a9b1d6",
   
-  -- Window frame
+  -- Window frame colors
   window_frame_active = "#7aa2f7",
   window_frame_inactive = "#3b4261",
 }
@@ -85,16 +85,6 @@ function M.apply_colors(config)
     
     -- Split pane
     split = "#16161e",
-    
-    -- Window frame
-    window_frame = {
-      active_titlebar_bg = M.colors.tab_bar_bg,
-      inactive_titlebar_bg = M.colors.background_secondary,
-      active_titlebar_fg = M.colors.tab_active_fg,
-      inactive_titlebar_fg = M.colors.tab_inactive_fg,
-      active_titlebar_border = M.colors.window_frame_active,
-      inactive_titlebar_border = M.colors.window_frame_inactive,
-    },
   }
 end
 
@@ -170,6 +160,16 @@ function M.apply_window_styling(config)
   config.inactive_pane_hsb = {
     saturation = 0.9,
     brightness = 0.8,
+  }
+  
+  -- Window frame colors (separate from config.colors)
+  config.window_frame = {
+    active_titlebar_bg = M.colors.tab_bar_bg,
+    inactive_titlebar_bg = M.colors.background_secondary,
+    active_titlebar_fg = M.colors.tab_active_fg,
+    inactive_titlebar_fg = M.colors.tab_inactive_fg,
+    active_titlebar_border = M.colors.window_frame_active,
+    inactive_titlebar_border = M.colors.window_frame_inactive,
   }
 end
 
