@@ -9,6 +9,8 @@ local wezterm = require("wezterm")
 -- ============================================
 local config_dir = wezterm.config_dir
 if config_dir then
+  -- Normalize path for Windows (replace backslashes with forward slashes)
+  config_dir = config_dir:gsub("\\", "/")
   -- Add the config directory and subdirectories to package.path
   package.path = package.path .. ";" .. config_dir .. "/?.lua"
   package.path = package.path .. ";" .. config_dir .. "/?/init.lua"
