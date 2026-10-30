@@ -150,8 +150,9 @@ function M.apply_status_bar(config)
     local colors = M.colors
     local gradient_color = gradients.create_gradient_animator("vibe", 5)()
     
-    -- Left status (working directory)
-    local cwd = wezterm.cwd()
+    -- Left status (working directory) - safe check
+    local cwd = wezterm.cwd and wezterm.cwd() or ""
+    if type(cwd) ~= "string" then cwd = "" end
     local cwd_display = wezterm.truncate_right(cwd, 40)
     
     -- Right status (time, with gradient color)

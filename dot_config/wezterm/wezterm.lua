@@ -22,10 +22,8 @@ end
 
 -- Now we can require our modules
 local styling = require("ui.styling")
-local splash = require("splash.screen")
 local logo = require("animations.logo")
 local gradients = require("animations.gradients")
-local effects = require("animations.effects")
 
 -- ============================================
 -- MAIN CONFIG BUILDER
@@ -66,77 +64,60 @@ config.automatically_reload_config = true
 -- 4. SPLASH SCREEN ON STARTUP
 -- ============================================
 wezterm.on("gui-startup", function()
-  -- Create splash screen with logo and animations
+  local pane = wezterm.mux.get_active_pane()
+  if not pane then return end
+  
+  local width, height = pane:dimensions()
+  local centered_logo = logo.get_centered_logo(width)
+  
+  -- Build static splash content (no function to avoid errors)
+  local elements = {}
+  
+  -- Add padding at top
+  table.insert(elements, {Text = "\n\n"})
+  
+  -- Add logo lines with styling
+  for _, line in ipairs(centered_logo) do
+    table.insert(elements, {
+      Attribute = {Intensity = "Bold"},
+      Text = line .. "\n",
+    })
+  end
+  
+  -- Add Vibe Coding branding
+  table.insert(elements, {
+    Attribute = {Intensity = "Bold"},
+    Foreground = {Color = "#bb9af7"},
+    Text = "   ╭───────────────────────────╮\n",
+  })
+  table.insert(elements, {
+    Attribute = {Intensity = "Bold"},
+    Foreground = {Color = "#bb9af7"},
+    Text = "   │      🎨  VIBE CODING  🎨     │\n",
+  })
+  table.insert(elements, {
+    Attribute = {Intensity = "Bold"},
+    Foreground = {Color = "#bb9af7"},
+    Text = "   ╰───────────────────────────╯\n",
+  })
+  
+  -- Add bottom padding
+  table.insert(elements, {Text = "\n\n"})
+  
+  -- Create and show overlay
   local splash_overlay = wezterm.overlay.new({
     width = "100%",
     height = "100%",
     anchor = {x = "CENTER", y = "MIDDLE"},
-    content = function()
-      local pane = wezterm.mux.get_active_pane()
-      if not pane then return {} end
-      
-      local width, height = pane:dimensions()
-      local centered_logo = logo.get_centered_logo(width)
-      
-      -- Generate gradient background for each line
-      local gradient = gradients.generate_gradient("vibe", #centered_logo + 4)
-      
-      local elements = {}
-      
-      -- Add padding at top
-      for i = 1, 2 do
-        table.insert(elements, {Text = "\n"})
-      end
-      
-      -- Add logo with gradient
-      for i, line in ipairs(centered_logo) do
-        local bg_color = gradient[i + 2] or gradient[#gradient]
-        local hex_color = gradients.rgb_to_ansi(bg_color.r, bg_color.g, bg_color.b)
-        
-        table.insert(elements, {
-          Attribute = {Intensity = "Bold"},
-          Background = {Color = "#1a1b26"},
-          Text = line .. "\n",
-        })
-      end
-      
-      -- Add Vibe Coding branding
-      table.insert(elements, {
-        Attribute = {Intensity = "Bold"},
-        Foreground = {Color = "#bb9af7"},
-        Text = "   ╭───────────────────────────╮\n",
-      })
-      table.insert(elements, {
-        Attribute = {Intensity = "Bold"},
-        Foreground = {Color = "#bb9af7"},
-        Text = "   │      🎨  VIBE CODING  🎨     │\n",
-      })
-      table.insert(elements, {
-        Attribute = {Intensity = "Bold"},
-        Foreground = {Color = "#bb9af7"},
-        Text = "   ╰───────────────────────────╯\n",
-      })
-      
-      -- Add bottom padding
-      for i = 1, 2 do
-        table.insert(elements, {Text = "\n"})
-      end
-      
-      return elements
-    end,
+    content = elements,
     bg_color = "#1a1b26",
     fg_color = "#c0caf5",
-    timeout = 2.5, -- Auto-close after 2.5 seconds
-    on_close = function()
-      -- Ensure window is properly initialized
-      local pane = wezterm.mux.get_active_pane()
-      if pane then
-        pane:activate()
-      end
-    end,
+    timeout = 2.5,
   })
   
-  splash_overlay:show()
+  if splash_overlay then
+    splash_overlay:show()
+  end
 end)
 
 -- ============================================
@@ -166,14 +147,6 @@ config.keys = {
     mods = "CTRL",
     action = wezterm.action.ReloadConfiguration,
   },
-  -- Show splash screen manually
-  {
-    key = "s",
-    mods = "CTRL|SHIFT",
-    action = wezterm.action_callback(function(window, pane)
-      splash.toggle_splash()
-    end),
-  },
 }
 
 -- ============================================
@@ -183,11 +156,11 @@ config.status_update_interval = 1000
 
 wezterm.on("update-status", function(window, pane)
   local colors = styling.colors
-  local gradient_animator = gradients.create_gradient_animator("vibe", 5)
-  local vibe_color = gradient_animator()
+  local gradient_color = gradients.create_gradient_animator("vibe", 5)()
   
-  -- Left: Working directory
-  local cwd = wezterm.cwd()
+  -- Left: Working directory (safe check)
+  local cwd = wezterm.cwd and wezterm.cwd() or ""
+  if type(cwd) ~= "string" then cwd = "" end
   local cwd_display = wezterm.truncate_right(cwd, 40)
   
   -- Right: Time + Vibe Coding branding
@@ -201,7 +174,7 @@ wezterm.on("update-status", function(window, pane)
   
   window:set_right_status(wezterm.format({
     {Background = {Color = colors.status_bar_bg}},
-    {Foreground = {Color = vibe_color}},
+    {Foreground = {Color = gradient_color}},
     {Text = " " .. time .. " ", " " .. "🎨 VIBE CODING" .. " "},
   }))
 end)
