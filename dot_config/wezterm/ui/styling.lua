@@ -96,26 +96,57 @@ function M.apply_tab_bar_styling(config)
   config.tab_max_width = 28
   config.hide_tab_bar_if_only_one_tab = false
   
-  -- Custom tab formatting
+  -- Simple tab bar style (no custom fn - use format-tab-title event instead)
   config.tab_bar_style = {
-    fn = function(tab, pane, tabs, panes, config)
-      local colors = M.colors
-      
-      if tab.is_active then
-        return {
-          bg_color = colors.tab_active_bg,
-          fg_color = colors.tab_active_fg,
-          text = " " .. wezterm.truncate_right(tab.active_pane.title, 24) .. " ",
-        }
-      else
-        return {
-          bg_color = colors.tab_inactive_bg,
-          fg_color = colors.tab_inactive_fg,
-          text = " " .. wezterm.truncate_right(tab.active_pane.title, 24) .. " ",
-        }
-      end
-    end,
+    active_tab = {
+      bg_color = M.colors.tab_active_bg,
+      fg_color = M.colors.tab_active_fg,
+    },
+    inactive_tab = {
+      bg_color = M.colors.tab_inactive_bg,
+      fg_color = M.colors.tab_inactive_fg,
+    },
+    inactive_tab_hover = {
+      bg_color = M.colors.tab_hover_bg,
+      fg_color = M.colors.tab_active_fg,
+    },
+    new_tab = {
+      bg_color = M.colors.tab_bar_bg,
+      fg_color = M.colors.tab_inactive_fg,
+    },
+    new_tab_hover = {
+      bg_color = M.colors.tab_hover_bg,
+      fg_color = M.colors.tab_active_fg,
+    },
   }
+end
+
+-- Custom tab title formatting (using event instead of config.tab_bar_style.fn)
+function M.apply_tab_formatting()
+  wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+    local colors = M.colors
+    local bg_color
+    local fg_color
+    
+    if tab.is_active then
+      bg_color = colors.tab_active_bg
+      fg_color = colors.tab_active_fg
+    elseif hover then
+      bg_color = colors.tab_hover_bg
+      fg_color = colors.tab_active_fg
+    else
+      bg_color = colors.tab_inactive_bg
+      fg_color = colors.tab_inactive_fg
+    end
+    
+    local title = wezterm.truncate_right(tab.active_pane.title, max_width - 4)
+    
+    return {
+      {Background = {Color = bg_color}},
+      {Foreground = {Color = fg_color}},
+      {Text = " " .. title .. " "},
+    }
+  end)
 end
 
 -- Status bar styling with animations
@@ -177,6 +208,7 @@ end
 function M.apply_all(config)
   M.apply_colors(config)
   M.apply_tab_bar_styling(config)
+  M.apply_tab_formatting()
   M.apply_status_bar(config)
   M.apply_window_styling(config)
 end
