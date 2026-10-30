@@ -192,8 +192,8 @@ function M.apply_window_styling(config)
     inactive_titlebar_bg = M.colors.background_secondary,
     active_titlebar_fg = M.colors.tab_active_fg,
     inactive_titlebar_fg = M.colors.tab_inactive_fg,
-    active_titlebar_border = M.colors.window_frame_active,
-    inactive_titlebar_border = M.colors.window_frame_inactive,
+    active_titlebar_border_bottom = M.colors.window_frame_active,
+    inactive_titlebar_border_bottom = M.colors.window_frame_inactive,
   }
 end
 
