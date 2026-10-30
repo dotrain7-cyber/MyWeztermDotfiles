@@ -4,7 +4,6 @@
 local wezterm = require("wezterm")
 local logo = require("animations.logo")
 local gradients = require("animations.gradients")
-local effects = require("animations.effects")
 
 local M = {}
 
@@ -12,67 +11,74 @@ local M = {}
 local splash_state = {
   visible = false,
   overlay = nil,
-  start_time = 0,
 }
 
 -- Create the splash screen overlay
 function M.create_splash_overlay()
   if splash_state.visible then return end
   splash_state.visible = true
-  splash_state.start_time = wezterm.time.now()
   
   local pane = wezterm.mux.get_active_pane()
   if not pane then return end
   
   local width, height = pane:dimensions()
+  local centered_logo = logo.get_centered_logo(width)
   
-  -- Create animated splash
-  local splash_lines = logo.get_splash_logo()
-  local centered = logo.get_centered_logo(width)
+  -- Build splash content
+  local elements = {}
   
-  -- Generate gradient colors
-  local gradient = gradients.generate_gradient("vibe", #centered + 2)
+  -- Add padding at top
+  table.insert(elements, {Text = "\n\n"})
   
-  -- Build splash content with gradient background
-  local content = {}
-  for i, line in ipairs(centered) do
-    local bg_color = gradient[i + 1] or gradient[#gradient]
-    table.insert(content, {
+  -- Add logo lines
+  for _, line in ipairs(centered_logo) do
+    table.insert(elements, {
       Attribute = {Intensity = "Bold"},
-      Text = line,
-    })
-    table.insert(content, {
-      Attribute = {Reset = true},
-      Text = "\n",
+      Background = {Color = "#1a1b26"},
+      Text = line .. "\n",
     })
   end
   
+  -- Add Vibe Coding branding
+  table.insert(elements, {
+    Attribute = {Intensity = "Bold"},
+    Foreground = {Color = "#bb9af7"},
+    Text = "   ╭───────────────────────────╮\n",
+  })
+  table.insert(elements, {
+    Attribute = {Intensity = "Bold"},
+    Foreground = {Color = "#bb9af7"},
+    Text = "   │      🎨  VIBE CODING  🎨     │\n",
+  })
+  table.insert(elements, {
+    Attribute = {Intensity = "Bold"},
+    Foreground = {Color = "#bb9af7"},
+    Text = "   ╰───────────────────────────╯\n",
+  })
+  
+  -- Add bottom padding
+  table.insert(elements, {Text = "\n\n"})
+  
   -- Create overlay
   splash_state.overlay = wezterm.overlay.new({
-    width = width,
-    height = height,
+    width = "100%",
+    height = "100%",
     anchor = {x = "CENTER", y = "MIDDLE"},
-    content = content,
-    bg_color = "#1a1b26", -- Tokyo Night background
-    fg_color = "#c0caf5", -- Text color
-    timeout = 3, -- Auto-close after 3 seconds
+    content = elements,
+    bg_color = "#1a1b26",
+    fg_color = "#c0caf5",
+    timeout = 2.5,
     on_close = function()
       splash_state.visible = false
       splash_state.overlay = nil
+      local pane = wezterm.mux.get_active_pane()
+      if pane then
+        pane:activate()
+      end
     end,
   })
   
-  -- Show overlay
   splash_state.overlay:show()
-  
-  -- Auto-hide after animation
-  wezterm.time.call_after(3, function()
-    if splash_state.overlay then
-      splash_state.overlay:close()
-      splash_state.visible = false
-      splash_state.overlay = nil
-    end
-  end)
 end
 
 -- Hide splash screen manually

@@ -2,6 +2,19 @@
 -- Modular WezTerm config with Vibe Coding theme
 
 local wezterm = require("wezterm")
+
+-- ============================================
+-- FIX: Add config directory to Lua package path
+-- This allows require("animations.logo") to work
+-- ============================================
+local config_dir = wezterm.config_dir
+if config_dir then
+  -- Add the config directory and subdirectories to package.path
+  package.path = package.path .. ";" .. config_dir .. "/?.lua"
+  package.path = package.path .. ";" .. config_dir .. "/?/init.lua"
+end
+
+-- Now we can require our modules
 local styling = require("ui.styling")
 local splash = require("splash.screen")
 local logo = require("animations.logo")

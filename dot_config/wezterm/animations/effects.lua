@@ -7,91 +7,43 @@ local gradients = require("animations.gradients")
 
 local M = {}
 
--- Typewriter effect for text
-function M.typewriter_effect(text, delay_ms, callback)
-  local chars = {}
-  for i = 1, #text do
-    table.insert(chars, text:sub(i, i))
+-- Simple color cycling effect for status bar
+function M.cycle_colors(colors, index)
+  local num_colors = #colors
+  local next_index = (index or 0) + 1
+  if next_index > num_colors then
+    next_index = 1
   end
-  
-  local index = 0
-  local timer
-  
-  timer = wezterm.time.call_after(delay_ms / 1000, function()
-    index = index + 1
-    if index <= #chars then
-      if callback then callback(table.concat(chars, "", 1, index))
-      end
-      timer = wezterm.time.call_after(delay_ms / 1000, function()
-        index = index + 1
-        if index <= #chars then
-          if callback then callback(table.concat(chars, "", 1, index))
-        else
-          if callback then callback(text) -- Ensure final state
-          end
-        end
-      end)
-    else
-      if callback then callback(text)
-      end
-    end
-  end)
-  
-  return function()
-    if timer then timer:cancel() end
-  end
+  return colors[next_index], next_index
 end
 
--- Fade in/out effect
-function M.fade_effect(start_alpha, end_alpha, duration_ms, callback)
-  local start_time = wezterm.time.now()
-  local timer
-  
-  local function update()
-    local elapsed = (wezterm.time.now() - start_time) * 1000
-    local progress = math.min(elapsed / duration_ms, 1.0)
-    local current_alpha = start_alpha + (end_alpha - start_alpha) * progress
-    
-    if callback then callback(current_alpha) end
-    
-    if progress < 1.0 then
-      timer = wezterm.time.call_after(0.016, update) -- ~60fps
-    end
-  end
-  
-  timer = wezterm.time.call_after(0, update)
-  
-  return function()
-    if timer then timer:cancel() end
-  end
+-- Get current timestamp for animations
+function M.get_timestamp()
+  return wezterm.time.now()
 end
 
--- Scrolling text effect
-function M.scrolling_text(text, width, speed, callback)
-  local full_text = text .. "    " .. text -- Loop
-  local position = 0
-  local timer
+-- Sine wave for pulsing effects
+function M.pulse_value(speed, offset)
+  local now = M.get_timestamp()
+  local elapsed = now - (offset or 0)
+  return 0.5 + 0.5 * math.sin(elapsed * speed * 2 * math.pi)
+end
+
+-- Gradient color at a given time
+function M.get_gradient_color(palette_name, speed, offset)
+  local gradients = require("animations.gradients")
+  local palette = gradients.color_palettes[palette_name] or gradients.color_palettes.vibe
+  local num_colors = #palette
+  local now = M.get_timestamp()
+  local elapsed = now - (offset or 0)
+  local phase = (elapsed * speed) % 1.0
   
-  timer = wezterm.time.call_after(0.05, function()
-    position = (position + 1) % #full_text
-    local visible = full_text:sub(position + 1, position + width)
-    if #visible < width then
-      visible = visible .. full_text:sub(1, width - #visible)
-    end
-    if callback then callback(visible) end
-    timer = wezterm.time.call_after(speed / 1000, function()
-      position = (position + 1) % #full_text
-      local visible = full_text:sub(position + 1, position + width)
-      if #visible < width then
-        visible = visible .. full_text:sub(1, width - #visible)
-      end
-      if callback then callback(visible) end
-    end)
-  end)
+  local segment = phase * (num_colors - 1)
+  local idx1 = math.floor(segment) + 1
+  local idx2 = math.min(idx1 + 1, num_colors)
+  local segment_factor = segment - math.floor(segment)
   
-  return function()
-    if timer then timer:cancel() end
-  end
+  return gradients.interpolate_color(palette[idx1], palette[idx2], segment_factor)
 end
 
 -- Combined splash animation
@@ -110,7 +62,7 @@ function M.create_splash_animation(width, height)
   end
   
   -- Gradient background for each line
-  local gradient = gradients.generate_gradient("vibe", line_height + padding * 2)
+  local gradient = require("animations.gradients").generate_gradient("vibe", line_height + padding * 2)
   
   local frames = {}
   for i = 1, #centered_logo do
