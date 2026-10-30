@@ -70,13 +70,30 @@ function M.apply_colors(config)
     selection_bg = M.colors.selection_bg,
     selection_fg = M.colors.selection_fg,
     
-    -- Tabs
+    -- Tabs - THIS is where tab colors go
     tab_bar = {
       background = M.colors.tab_bar_bg,
+      -- Active tab
+      active_tab = {
+        bg_color = M.colors.tab_active_bg,
+        fg_color = M.colors.tab_active_fg,
+      },
+      -- Inactive tabs
+      inactive_tab = {
+        bg_color = M.colors.tab_inactive_bg,
+        fg_color = M.colors.tab_inactive_fg,
+      },
+      -- Inactive tab hover
+      inactive_tab_hover = {
+        bg_color = M.colors.tab_hover_bg,
+        fg_color = M.colors.tab_active_fg,
+      },
+      -- New tab button
       new_tab = {
         bg_color = M.colors.tab_bar_bg,
         fg_color = M.colors.tab_inactive_fg,
       },
+      -- New tab button hover
       new_tab_hover = {
         bg_color = M.colors.tab_hover_bg,
         fg_color = M.colors.tab_active_fg,
@@ -88,40 +105,16 @@ function M.apply_colors(config)
   }
 end
 
--- Tab bar styling
+-- Tab bar styling (basic settings only, no colors here)
 function M.apply_tab_bar_styling(config)
   config.enable_tab_bar = true
   config.use_fancy_tab_bar = false
   config.tab_bar_at_bottom = false
   config.tab_max_width = 28
   config.hide_tab_bar_if_only_one_tab = false
-  
-  -- Simple tab bar style (no custom fn - use format-tab-title event instead)
-  config.tab_bar_style = {
-    active_tab = {
-      bg_color = M.colors.tab_active_bg,
-      fg_color = M.colors.tab_active_fg,
-    },
-    inactive_tab = {
-      bg_color = M.colors.tab_inactive_bg,
-      fg_color = M.colors.tab_inactive_fg,
-    },
-    inactive_tab_hover = {
-      bg_color = M.colors.tab_hover_bg,
-      fg_color = M.colors.tab_active_fg,
-    },
-    new_tab = {
-      bg_color = M.colors.tab_bar_bg,
-      fg_color = M.colors.tab_inactive_fg,
-    },
-    new_tab_hover = {
-      bg_color = M.colors.tab_hover_bg,
-      fg_color = M.colors.tab_active_fg,
-    },
-  }
 end
 
--- Custom tab title formatting (using event instead of config.tab_bar_style.fn)
+-- Custom tab title formatting (using event)
 function M.apply_tab_formatting()
   wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
     local colors = M.colors
