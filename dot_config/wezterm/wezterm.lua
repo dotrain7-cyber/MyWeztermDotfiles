@@ -64,60 +64,51 @@ config.automatically_reload_config = true
 -- 4. SPLASH SCREEN ON STARTUP
 -- ============================================
 wezterm.on("gui-startup", function()
-  local pane = wezterm.mux.get_active_pane()
-  if not pane then return end
-  
-  local width, height = pane:dimensions()
-  local centered_logo = logo.get_centered_logo(width)
-  
-  -- Build static splash content (no function to avoid errors)
-  local elements = {}
-  
-  -- Add padding at top
-  table.insert(elements, {Text = "\n\n"})
-  
-  -- Add logo lines with styling
-  for _, line in ipairs(centered_logo) do
-    table.insert(elements, {
-      Attribute = {Intensity = "Bold"},
-      Text = line .. "\n",
+  -- Delay splash to ensure mux is ready
+  wezterm.time.call_after(0.1, function()
+    local pane = wezterm.mux.get_active_pane()
+    if not pane then return end
+    
+    local width, height = pane:dimensions()
+    local centered_logo = logo.get_centered_logo(width)
+    
+    -- Build static splash content as numeric array
+    local elements = {}
+    
+    -- Add padding at top
+    table.insert(elements, "\n\n")
+    
+    -- Add logo lines
+    for _, line in ipairs(centered_logo) do
+      table.insert(elements, line .. "\n")
+    end
+    
+    -- Add Vibe Coding branding with color
+    table.insert(elements, "   ")
+    table.insert(elements, { Foreground = { Color = "#bb9af7" }, Text = "╭───────────────────────────╮" })
+    table.insert(elements, "\n")
+    table.insert(elements, "   ")
+    table.insert(elements, { Foreground = { Color = "#bb9af7" }, Text = "│      🎨  VIBE CODING  🎨     │" })
+    table.insert(elements, "\n")
+    table.insert(elements, "   ")
+    table.insert(elements, { Foreground = { Color = "#bb9af7" }, Text = "╰───────────────────────────╯" })
+    table.insert(elements, "\n\n")
+    
+    -- Create and show overlay
+    local splash_overlay = wezterm.overlay.new({
+      width = "100%",
+      height = "100%",
+      anchor = { x = "CENTER", y = "MIDDLE" },
+      content = elements,
+      bg_color = "#1a1b26",
+      fg_color = "#c0caf5",
+      timeout = 2.5,
     })
-  end
-  
-  -- Add Vibe Coding branding
-  table.insert(elements, {
-    Attribute = {Intensity = "Bold"},
-    Foreground = {Color = "#bb9af7"},
-    Text = "   ╭───────────────────────────╮\n",
-  })
-  table.insert(elements, {
-    Attribute = {Intensity = "Bold"},
-    Foreground = {Color = "#bb9af7"},
-    Text = "   │      🎨  VIBE CODING  🎨     │\n",
-  })
-  table.insert(elements, {
-    Attribute = {Intensity = "Bold"},
-    Foreground = {Color = "#bb9af7"},
-    Text = "   ╰───────────────────────────╯\n",
-  })
-  
-  -- Add bottom padding
-  table.insert(elements, {Text = "\n\n"})
-  
-  -- Create and show overlay
-  local splash_overlay = wezterm.overlay.new({
-    width = "100%",
-    height = "100%",
-    anchor = {x = "CENTER", y = "MIDDLE"},
-    content = elements,
-    bg_color = "#1a1b26",
-    fg_color = "#c0caf5",
-    timeout = 2.5,
-  })
-  
-  if splash_overlay then
-    splash_overlay:show()
-  end
+    
+    if splash_overlay then
+      splash_overlay:show()
+    end
+  end)
 end)
 
 -- ============================================
@@ -166,16 +157,17 @@ wezterm.on("update-status", function(window, pane)
   -- Right: Time + Vibe Coding branding
   local time = wezterm.strftime("%Y-%m-%d %H:%M:%S")
   
+  -- Use simple string formatting for status
   window:set_left_status(wezterm.format({
-    {Background = {Color = colors.status_bar_bg}},
-    {Foreground = {Color = colors.status_bar_fg}},
-    {Text = " " .. cwd_display .. " "},
+    { Background = { Color = colors.status_bar_bg } },
+    { Foreground = { Color = colors.status_bar_fg } },
+    { Text = " " .. cwd_display .. " " },
   }))
   
   window:set_right_status(wezterm.format({
-    {Background = {Color = colors.status_bar_bg}},
-    {Foreground = {Color = gradient_color}},
-    {Text = " " .. time .. " ", " " .. "🎨 VIBE CODING" .. " "},
+    { Background = { Color = colors.status_bar_bg } },
+    { Foreground = { Color = gradient_color } },
+    { Text = " " .. time .. "  🎨 VIBE CODING " },
   }))
 end)
 

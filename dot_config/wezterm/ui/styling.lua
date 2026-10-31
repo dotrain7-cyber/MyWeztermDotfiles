@@ -70,7 +70,7 @@ function M.apply_colors(config)
     selection_bg = M.colors.selection_bg,
     selection_fg = M.colors.selection_fg,
     
-    -- Tabs - THIS is where tab colors go
+    -- Tabs
     tab_bar = {
       background = M.colors.tab_bar_bg,
       -- Active tab
@@ -135,9 +135,9 @@ function M.apply_tab_formatting()
     local title = wezterm.truncate_right(tab.active_pane.title, max_width - 4)
     
     return {
-      {Background = {Color = bg_color}},
-      {Foreground = {Color = fg_color}},
-      {Text = " " .. title .. " "},
+      { Background = { Color = bg_color } },
+      { Foreground = { Color = fg_color } },
+      { Text = " " .. title .. " " },
     }
   end)
 end
@@ -155,19 +155,20 @@ function M.apply_status_bar(config)
     if type(cwd) ~= "string" then cwd = "" end
     local cwd_display = wezterm.truncate_right(cwd, 40)
     
-    -- Right status (time, with gradient color)
-    local time = wezterm.strftime("%H:%M:%S")
+    -- Right: Time + Vibe Coding branding
+    local time = wezterm.strftime("%Y-%m-%d %H:%M:%S")
     
+    -- Use correct format: attributes first, then text as separate elements
     window:set_left_status(wezterm.format({
-      {Background = {Color = colors.status_bar_bg}},
-      {Foreground = {Color = colors.status_bar_fg}},
-      {Text = " " .. cwd_display .. " "},
+      { Background = { Color = colors.status_bar_bg } },
+      { Foreground = { Color = colors.status_bar_fg } },
+      " " .. cwd_display .. " ",
     }))
     
     window:set_right_status(wezterm.format({
-      {Background = {Color = colors.status_bar_bg}},
-      {Foreground = {Color = gradient_color}},
-      {Text = " " .. time .. " ", " " .. "🎨 VIBE CODING" .. " "},
+      { Background = { Color = colors.status_bar_bg } },
+      { Foreground = { Color = gradient_color } },
+      " " .. time .. "  🎨 VIBE CODING ",
     }))
   end)
 end
