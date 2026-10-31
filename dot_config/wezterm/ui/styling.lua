@@ -158,17 +158,17 @@ function M.apply_status_bar(config)
     -- Right: Time + Vibe Coding branding
     local time = wezterm.strftime("%Y-%m-%d %H:%M:%S")
     
-    -- Use correct format: attributes first, then text as separate elements
+    -- Use correct format: all elements must be tables with valid keys
     window:set_left_status(wezterm.format({
       { Background = { Color = colors.status_bar_bg } },
       { Foreground = { Color = colors.status_bar_fg } },
-      " " .. cwd_display .. " ",
+      { Text = " " .. cwd_display .. " " },
     }))
     
     window:set_right_status(wezterm.format({
       { Background = { Color = colors.status_bar_bg } },
       { Foreground = { Color = gradient_color } },
-      " " .. time .. "  🎨 VIBE CODING ",
+      { Text = " " .. time .. "  🎨 VIBE CODING " },
     }))
   end)
 end
