@@ -1,74 +1,32 @@
-# WezTerm Fancy Prompts
+# WezTerm Pixel Pencil — v10 (chezmoi)
 
-This directory contains prompt configurations for different shells to match the Vibe Coding theme.
+## 構成
 
-## For Git Bash (Recommended)
+- **PowerShell 5.1 / 7**: `startup.ps1` -> `powershell.ps1`。入力中はカラフルなA型シェブロン、Enter後は各階層を保持した**輪郭版**（`│PS5││~│...`）に変わります。空Enterにも適用します。
+- **実行中**: 通常の `ls`、`git status`、`Start-Sleep` をそのまま実行。シェルが `OSC 1337` の `WEZ_RUN` に `running` / `idle` を通知し、WezTermが**上部タブ内だけ**点字スピナーを表示（緑～黄色）。コマンド出力に描画しません。
+- **Git Bash**: `source "$HOME/.config/wezterm/prompts/gitbash.sh"` を `~/.bashrc` の末尾に追加。Bash 4.4+ の `PS0` と `PROMPT_COMMAND` でタブスピナーに対応。従来のカラフルなA型プロンプトは維持します。**Git Bashの実行済み輪郭化は未対応**（Readlineの過去の行の安全な再描画に制約があるため）。
+- `WEZTERM_USE_STARSHIP=1` にした場合、StarshipがPowerShellプロンプトを置き換えるため、輪郭化・Enter連携は無効です。
+- 常時アニメーション・右側RUNNING・Start-Jobによる専用ラッパーは**削除**しました。
 
-Add to your `~/.bashrc`:
+## 診断コマンド
 
-```bash
-# Load fancy Vibe prompt
-source ~/.config/wezterm/prompts/gitbash.lua
-PS1="$(lua -e "require('prompts.gitbash').set()')" 
-```
-
-Or create a simpler version:
-
-```bash
-# Add to ~/.bashrc
-function vibe_prompt() {
-    local esc="\033"
-    local reset="$esc[0m"
-    local blue="$esc[94m"
-    local cyan="$esc[96m"
-    local magenta="$esc[95m"
-    local purple="$esc[38;2;122;162;247m"
-    
-    local user=$(whoami)
-    local host=$(hostname)
-    local path=$(pwd | sed "s|$HOME|~|")
-    
-    # Shorten path
-    if [ ${#path} -gt 40 ]; then
-        path="$(echo $path | rev | cut -d/ -f1-3 | rev | sed 's|.*/|.../|')"
-    fi
-    
-    # Git info
-    local branch=$(git branch --show-current 2>/dev/null)
-    local git_status=""
-    if [ -n "$branch" ]; then
-        git_status=" $purple $branch$reset"
-    fi
-    
-    echo "$blue╭─$reset$user@$host $cyan$path$reset$git_status$magenta $ $reset"
-}
-
-PS1="$(vibe_prompt)" 
-```
-
-## For PowerShell
-
-Run this once to add to your profile:
+PowerShell（WezTermの新規タブで試す）：
 
 ```powershell
-# Add to PowerShell profile
-Add-Content -Path $PROFILE -Value @'
-. $env:USERPROFILE\.config\wezterm\prompts\powershell.ps1
-'@
+Get-WezAnimationDiagnostic | Format-List
+Test-WezTabSpinner -Seconds 7
+Start-Sleep -Seconds 7
 ```
 
-## For cmd.exe
+- `EnterHookStatus = installed` であれば、通常のEnterからも通知されます。
+- `Test-WezTabSpinner` が動くのに `Start-Sleep` で動かないなら、PSReadLineのEnterフックを確認してください。
+- **空Enter**: 入力待ちの塗りつぶしが、同じ階層の輪郭型に切り替わります。空Enterではスピナーは出しません。
+- 輪郭部分が `????` になるなら `Set-WezTransientStyle ASCII` で切り替えられます。UTF-8対応フォントとConsoleの出力エンコーディングも確認してください。
+- ターミナル幅を超えるコマンドや複数行コマンドでは、PSReadLineの描画を壊さないよう輪郭化をスキップします（スピナーの通知は行単位で試みます）。
+- F1: ヘルプ / F3: シェル起動メニュー。
 
-cmd.exe has limited prompt customization. Add to your AutoRun:
+## 注意
 
-```batch
-@echo off
-prompt $[38;2;122;162;247m╭─$[0m$u@$c $[38;2;125;207;255m$p$[0m$[38;2;187;154;247m $ $[0m
-```
+PSReadLineの既存Enterキーバインドがカスタムの場合は**勝手に上書きせず**、フックをスキップします。この場合、手動テストは可能でも通常のコマンドの自動タブ表示は動作しません。
 
-## Features
-
-- **Vibe Coding branding** - Purple/magenta/cyan color scheme
-- **Shortened paths** - Truncates long directory paths
-- **Git integration** - Shows branch and status
-- **Cross-shell support** - Bash, PowerShell, cmd.exe
+Windows上の実機テストはこの作業環境では実施できません。WezTermを完全終了してから新しいタブを起動してください。

@@ -1,24 +1,28 @@
-# プロンプトのレイアウト定義
-format = """
-$directory\
-$git_branch\
-$git_status\
-$line_break\
-$character"""
+# Optional Starship fallback, activated with WEZTERM_USE_STARSHIP=1.
+# The default PowerShell/Bash prompt is custom-built so each path component
+# can form a different-colored segment of the same arrow/pencil.
+add_newline = false
+command_timeout = 1500
+format = "$shell$directory$character"
 
-# ディレクトリ表示の設定（階層ごとの色分け）
+[shell]
+disabled = false
+format = '[ $indicator ](fg:#101321 bg:#bb9af7)'
+pwsh_indicator = 'PS7'
+powershell_indicator = 'PS5'
+bash_indicator = 'BASH'
+zsh_indicator = 'ZSH'
+fish_indicator = 'FISH'
+unknown_indicator = 'SHELL'
+
 [directory]
+format = '[](fg:#bb9af7 bg:#7dcfff)[ $path ](fg:#101321 bg:#7dcfff)'
 truncation_length = 5
-truncation_symbol = "…/"
-style = "bold cyan"
-repo_root_style = "bold purple"
+truncation_symbol = '…/'
+truncate_to_repo = false
+home_symbol = '~'
 
-# Gitブランチの表示設定
-[git_branch]
-symbol = "🌱 "
-style = "bold green"
-
-# 入力プロンプト記号（成功時：緑 / エラー時：赤）
 [character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[❯](bold red)"
+success_symbol = '[](fg:#7dcfff) '
+error_symbol = '[](fg:#f7768e) '
+vimcmd_symbol = '[](fg:#bb9af7) '

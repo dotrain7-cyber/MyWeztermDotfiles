@@ -1,50 +1,37 @@
--- animations/logo.lua
--- WezTerm ASCII logo with "Vibe Coding" branding
-
-local wezterm = require("wezterm")
-
+-- LazyVim-style WEZTERM banner: block glyphs, double-line counters, 3D extrusion.
+-- Source of truth: splash/wezt-logo.txt (also printed by PowerShell and Git Bash).
+local wezterm = require('wezterm')
 local M = {}
-
--- WezTerm logo in blocky ASCII style
-M.wezterm_logo = {
-  "██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗███████╗██╗     ███████╗██████╗ ",
-  "██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝██╔════╝██║     ██╔════╝██╔══██╗",
-  "██║ █╗ ██║██║   ██║██████╔╝█████╔╝ █████╗  ██║     █████╗  ██████╔╝",
-  "██║███╗██║██║   ██║██╔══██╗██╔═██╗ ██╔══╝  ██║     ██╔══╝  ██╔══██╗",
-  "╚███╔███╔╝╚██████╔╝██║  ██║██║  ██║███████╗███████╗███████╗██║  ██║",
-  " ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝",
-}
-
--- Vibe Coding branding
-M.vibe_branding = {
-  "",
-  "╭───────────────────────────╮",
-  "│      🎨 VIBE CODING 🎨     │",
-  "╰───────────────────────────╯",
-  "",
-}
-
--- Combined splash logo
-function M.get_splash_logo()
-  local lines = {}
-  for _, line in ipairs(M.wezterm_logo) do
-    table.insert(lines, line)
+local path = (wezterm.config_dir or '') .. '/splash/wezt-logo.txt'
+local lines = {}
+local file = io.open(path, 'r')
+if file then
+  for line in file:lines() do
+    lines[#lines + 1] = line:gsub('\r$', '')
   end
-  for _, line in ipairs(M.vibe_branding) do
-    table.insert(lines, line)
+  file:close()
+end
+if #lines == 0 then lines = { 'W E Z T E R M' } end
+M.wezterm_logo = lines
+
+function M.get_splash_logo(width)
+  width = tonumber(width) or 95
+  local logo_width = 0
+  for _, line in ipairs(lines) do
+    logo_width = math.max(logo_width, wezterm.column_width(line))
   end
+  if width < logo_width + 2 then return { 'W E Z T E R M' } end
   return lines
 end
 
--- Centered version for better display
 function M.get_centered_logo(width)
-  local lines = M.get_splash_logo()
-  local centered = {}
-  for _, line in ipairs(lines) do
-    local padding = math.floor((width - #line) / 2)
-    table.insert(centered, string.rep(" ", padding) .. line)
+  width = math.max(1, tonumber(width) or 95)
+  local result = {}
+  for _, line in ipairs(M.get_splash_logo(width)) do
+    if wezterm.column_width(line) > width then line = 'W' end
+    local pad = math.max(0, math.floor((width - wezterm.column_width(line)) / 2))
+    result[#result + 1] = string.rep(' ', pad) .. line
   end
-  return centered
+  return result
 end
-
 return M
